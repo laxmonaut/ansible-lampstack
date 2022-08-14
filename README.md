@@ -1,8 +1,8 @@
 # ansible-lampstack
 Anisble Playbook to configure LAMP stack
-# I created this playbook while practicing Ansible
+(I created this playbook while practicing Ansible)
 
-Steps:
+# Steps:
 1. Install Ansible
 2. Modify the exising inventory file.
 3. Run the following commands:
