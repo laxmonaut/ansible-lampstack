@@ -1,0 +1,67 @@
+-
+  name: "Installing packages and starting respective services"
+  hosts: all
+  remote_user: root
+  tasks:
+  - name: "Install packages"
+    ansible.builtin.yum:
+      name: '{{ item }}'
+      state: latest
+    loop:
+    - firewalld
+    - mariadb-server
+    - httpd
+    - php
+    - php-mysqlnd
+    - git
+
+  - name: "Start and enable services"
+    ansible.builtin.service:
+      name: '{{ item }}'
+      state: started
+      enabled: yes
+    loop:
+    - firewalld
+    - mariadb
+    - httpd
+
+-
+  name: "Configure firewalld"
+  hosts: all
+  remote_user: root
+  tasks:
+  - name: Firewall configuration
+    ansible.posix.firewalld:
+      port: '{{ item }}'
+      permanent: yes
+      immediate: yes
+      state: enabled
+    loop:
+    - '3306/tcp'
+    - '80/tcp'
+
+-
+  name: "Configure and setup website"
+  hosts: all
+  remote_user: root
+  tasks:
+  - name: "Changing document root from index.html to index.php"
+    ansible.builtin.lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      search_string: '    DirectoryIndex index.html'
+      line: '    DirectoryIndex index.php'
+  - name: "Download files from Git"
+    ansible.builtin.git:
+      repo: 'https://github.com/kodekloudhub/learning-app-ecommerce.git'
+      dest: /var/www/html/
+      clone: yes
+      force: yes
+  - name: "Changing IP of the database server"
+    ansible.builtin.replace:
+      path: /var/www/html/index.php
+      regexp: '\b172.20.1.101\b'
+      #replace: "{{ ansible_ssh_host }}"
+      replace: "localhost"
+  - name: "Start and enable httpd service"
+    ansible.builtin.service:
+      name: 'httpd'
